@@ -5,9 +5,19 @@
 
 ## 📌 Executive Summary
 
-The **Hostel Room Allocation Management System (HRAMS)** is a desktop application designed for hostel administrators to replace manual, paper-based room tracking with an automated digital platform. 
+The **Hostel Room Allocation Management System (HRAMS)** is a modern Spring Boot web application designed for hostel administrators to replace manual, paper-based room tracking with an automated digital platform. 
 
 The system automates student record management, room directory tracking, **First-Fit room allocation with multi-student roommate co-occupancy display**, **First-In-First-Out (FIFO) waiting list management**, room vacating workflows, and detailed room-sharing occupancy reporting.
+
+---
+
+## 🖼️ Application Interface Screenshots
+
+### 🔐 Square Admin Login Portal
+![HRAMS Square Login Screen](screenshots/login_page.png)
+
+### 📊 Real-Time Web Portal Dashboard
+![HRAMS Real-Time Web Portal Dashboard](screenshots/dashboard_page.png)
 
 ---
 

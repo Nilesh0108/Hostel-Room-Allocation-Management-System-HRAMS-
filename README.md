@@ -21,6 +21,16 @@ The **Hostel Room Allocation Management System (HRAMS)** is a digital web platfo
 
 ---
 
+## 🖼️ Application Screenshots
+
+### 🔐 1. Centered Square Login Interface
+![HRAMS Square Login Screen](docs/screenshots/login_page.png)
+
+### 📊 2. Real-Time Administrative Web Portal & Dashboard
+![HRAMS Real-Time Web Portal Dashboard](docs/screenshots/dashboard_page.png)
+
+---
+
 ## 🛠️ 2. Technology Stack
 
 | Layer | Technologies Used |
