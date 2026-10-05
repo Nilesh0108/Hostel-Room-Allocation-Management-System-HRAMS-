@@ -116,11 +116,25 @@ function loadStudents() {
                     <td>${s.gender}</td>
                     <td>${s.email}</td>
                     <td>
+                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; margin-right: 4px;" onclick="allocateStudentFromTable('${s.studentId}')">⚡ Allocate / Queue</button>
                         <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteStudent('${s.studentId}')">Delete</button>
                     </td>
                 </tr>
             `;
         });
+    });
+}
+
+function allocateStudentFromTable(studentId) {
+    fetch("/api/allocations/trigger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: studentId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        refreshAllData();
     });
 }
 
@@ -191,7 +205,11 @@ function loadRooms() {
                 badgeClass = "badge-amber";
                 statusText = "Partially Occupied";
             }
-            const occupantsHtml = r.occupants ? `<span style="color: #38bdf8; font-weight: 500;">${r.occupants}</span>` : `<span style="color: #94a3b8; font-style: italic;">(Empty)</span>`;
+            let occupantsHtml = `<span style="color: #64748b; font-style: italic; font-size: 12px;">(No Occupants)</span>`;
+            if (r.occupants && r.occupants.trim().length > 0) {
+                const names = r.occupants.split(", ");
+                occupantsHtml = names.map(name => `<span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 8px; font-size: 11px; margin: 2px; display: inline-block;">👤 ${name.trim()}</span>`).join("");
+            }
             tbody.innerHTML += `
                 <tr>
                     <td>${r.roomId}</td>
