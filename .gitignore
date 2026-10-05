@@ -1,0 +1,28 @@
+# Target build outputs
+target/
+*.class
+
+# Local H2 Database data directory and database files
+data/
+*.mv.db
+*.trace.db
+
+# Bundled local Maven binaries
+apache-maven-3.9.6/
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

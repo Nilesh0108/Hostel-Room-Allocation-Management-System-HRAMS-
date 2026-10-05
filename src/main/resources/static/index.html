@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRAMS Web Portal - Hostel Room Allocation System</title>
+    <link rel="stylesheet" href="/css/web_styles.css">
+</head>
+<body>
+
+    <!-- Square Card Login Overlay Modal -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-title">HRAMS PORTAL</div>
+                <div class="login-subtitle">Hostel Room Allocation Management System</div>
+                <div class="login-caption">Administrator Secure Web Login</div>
+            </div>
+            
+            <div class="divider"></div>
+
+            <form id="loginForm" onsubmit="handleWebLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="username">Administrator Username *</label>
+                    <input type="text" id="username" class="form-control" value="admin" required placeholder="Enter admin username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password *</label>
+                    <input type="password" id="password" class="form-control" value="admin123" required placeholder="Enter password">
+                </div>
+
+                <div id="loginError" style="color: #f87171; font-weight: bold; margin-bottom: 12px; min-height: 20px;"></div>
+
+                <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 15px;">Log In to Web Dashboard</button>
+            </form>
+
+            <div id="dbStatusLabel" style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 10px; font-weight: bold;">Connected to Server</div>
+        </div>
+    </div>
+
+    <!-- Main Web Portal Container -->
+    <div id="appContainer" class="app-container hidden">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div>
+                <div class="sidebar-title">HRAMS Web</div>
+                <div class="sidebar-subtitle">Hostel Allocation System</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" onclick="switchNav('dashboardView', this)">📊 Dashboard</button>
+                <button class="nav-item" onclick="switchNav('studentsView', this)">🎓 Student Directory</button>
+                <button class="nav-item" onclick="switchNav('roomsView', this)">🏢 Room Directory</button>
+                <button class="nav-item" onclick="switchNav('allocationView', this)">🔑 Room Allocation</button>
+                <button class="nav-item" onclick="switchNav('waitingListView', this)">⏳ Waiting List</button>
+                <button class="nav-item" onclick="switchNav('reportsView', this)">📈 Reports & Summary</button>
+            </nav>
+
+            <div class="divider"></div>
+
+            <div>
+                <div id="adminUserTag" style="color: #94a3b8; font-size: 13px; font-weight: bold; margin-bottom: 10px;">Admin: admin</div>
+                <button class="btn btn-danger" style="width: 100%;" onclick="handleWebLogout()">🚪 Log Out</button>
+            </div>
+        </div>
+
+        <!-- Main Content View Area -->
+        <div class="main-content">
+            <header class="top-header">
+                <div id="pageHeaderTitle" class="header-title">Dashboard Overview</div>
+                <div id="dbBannerTag" style="color: #38bdf8; font-weight: bold; font-size: 13px;">Active DB: Spring Boot API</div>
+            </header>
+
+            <div class="view-container">
+                <!-- 1. DASHBOARD VIEW -->
+                <div id="dashboardView" class="view-panel">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-title">Total Students</div>
+                            <div id="lblTotalStudents" class="kpi-value">0</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Registered in system</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Available Rooms</div>
+                            <div id="lblAvailableRooms" class="kpi-value green">0</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Rooms with free beds</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Full / Occupied</div>
+                            <div id="lblOccupiedRooms" class="kpi-value red">0</div>
+                            <div style="font-size: 12px; color: #94a3b8;">Rooms at full capacity</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-title">Waiting Queue</div>
+                            <div id="lblWaitingStudents" class="kpi-value amber">0</div>
+                            <div style="font-size: 12px; color: #94a3b8;">FIFO pending allocation</div>
+                        </div>
+                    </div>
+
+                    <div class="table-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div style="font-size: 16px; font-weight: bold; color: #38bdf8;">Current Active Allocations & Roommate Sharing Overview</div>
+                            <div id="lblActiveCount" style="color: #94a3b8; font-size: 13px;">Total Active: 0</div>
+                        </div>
+                        <table class="web-table">
+                            <thead>
+                                <tr>
+                                    <th>Alloc ID</th>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th>Room & Capacity</th>
+                                    <th>Co-Occupants / Roommates</th>
+                                    <th>Allocation Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblDashboardAllocations"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. STUDENT MANAGEMENT VIEW -->
+                <div id="studentsView" class="view-panel hidden">
+                    <div class="action-bar">
+                        <input type="text" id="txtStudentSearch" class="form-control" style="width: 300px;" placeholder="🔍 Search Student ID or Name...">
+                        <button class="btn btn-secondary" onclick="loadStudents()">Search</button>
+                        <button class="btn btn-success" style="margin-left: auto;" onclick="openStudentForm()">➕ Add New Student</button>
+                    </div>
+
+                    <div style="display: flex; gap: 20px;">
+                        <div class="table-card" style="flex: 2;">
+                            <table class="web-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Course</th>
+                                        <th>Year</th>
+                                        <th>Gender</th>
+                                        <th>Email</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblStudentsBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-card" style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: bold; color: #38bdf8; margin-bottom: 16px;" id="studentFormTitle">New Student Entry</div>
+                            <form onsubmit="handleSaveStudent(event)">
+                                <div class="form-group">
+                                    <label class="form-label">Student ID *</label>
+                                    <input type="text" id="stuId" class="form-control" required placeholder="e.g. STU1005">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Full Name *</label>
+                                    <input type="text" id="stuName" class="form-control" required placeholder="e.g. Michael Jordan">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" id="stuEmail" class="form-control" required placeholder="m.jordan@university.edu">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Phone *</label>
+                                    <input type="text" id="stuPhone" class="form-control" required placeholder="+1-555-0199">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Course *</label>
+                                    <input type="text" id="stuCourse" class="form-control" required placeholder="Computer Science">
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label class="form-label">Year *</label>
+                                        <select id="stuYear" class="form-control">
+                                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label class="form-label">Gender *</label>
+                                        <select id="stuGender" class="form-control">
+                                            <option value="Male">Male</option><option value="Female">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">💾 Save Student</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ROOM MANAGEMENT VIEW -->
+                <div id="roomsView" class="view-panel hidden">
+                    <div style="display: flex; gap: 20px;">
+                        <div class="table-card" style="flex: 2;">
+                            <table class="web-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Room No</th>
+                                        <th>Floor</th>
+                                        <th>Type</th>
+                                        <th>Capacity</th>
+                                        <th>Occupied</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblRoomsBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-card" style="flex: 1;">
+                            <div style="font-size: 16px; font-weight: bold; color: #38bdf8; margin-bottom: 16px;">New Room Entry</div>
+                            <form onsubmit="handleSaveRoom(event)">
+                                <div class="form-group">
+                                    <label class="form-label">Room Number *</label>
+                                    <input type="text" id="rmNumber" class="form-control" required placeholder="e.g. C-301">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Floor Level *</label>
+                                    <input type="number" id="rmFloor" class="form-control" value="1" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bed Capacity *</label>
+                                    <input type="number" id="rmCapacity" class="form-control" value="2" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Room Type *</label>
+                                    <select id="rmType" class="form-control">
+                                        <option value="Single Deluxe">Single Deluxe</option>
+                                        <option value="Single Standard">Single Standard</option>
+                                        <option value="Double Standard" selected>Double Standard</option>
+                                        <option value="Triple Suite">Triple Suite</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">💾 Save Room</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. ALLOCATION ENGINE VIEW -->
+                <div id="allocationView" class="view-panel hidden">
+                    <div class="action-bar" style="border-color: #38bdf8;">
+                        <div style="font-weight: bold; color: #38bdf8; font-size: 15px;">⚡ Trigger First-Fit Room Allocation:</div>
+                        <input type="text" id="allocStudentId" class="form-control" style="width: 320px;" placeholder="Type Student ID (e.g. STU1001)...">
+                        <button class="btn btn-primary" onclick="handleTriggerAllocation()">🚀 Trigger First-Fit Allocation</button>
+                    </div>
+
+                    <div class="table-card">
+                        <table class="web-table">
+                            <thead>
+                                <tr>
+                                    <th>Alloc ID</th>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th>Room & Capacity</th>
+                                    <th>Co-Occupants / Roommates</th>
+                                    <th>Allocation Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblAllocationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. WAITING LIST QUEUE VIEW -->
+                <div id="waitingListView" class="view-panel hidden">
+                    <div class="action-bar">
+                        <div style="color: #fbbf24; font-weight: bold; font-size: 15px;">⏳ FIFO Waiting Queue Management</div>
+                        <button class="btn btn-primary" style="margin-left: auto;" onclick="handleProcessNextWaiting()">⚡ Allocate Next FIFO Candidate</button>
+                    </div>
+
+                    <div class="table-card">
+                        <table class="web-table">
+                            <thead>
+                                <tr>
+                                    <th>Queue #</th>
+                                    <th>Wait ID</th>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th>Course</th>
+                                    <th>Gender</th>
+                                    <th>Request Timestamp</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblWaitingBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 6. REPORTS VIEW -->
+                <div id="reportsView" class="view-panel hidden">
+                    <div class="action-bar">
+                        <label class="form-label" style="font-size: 15px; margin: 0;">Select Report Type:</label>
+                        <select id="reportTypeSelect" class="form-control" style="width: 380px;">
+                            <option value="1">1. Active Allocations & Roommate Roster Report</option>
+                            <option value="2">2. Room Capacity & Roommate Breakdown Report</option>
+                            <option value="3">3. FIFO Waiting List Queue Report</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadReport()">📊 Generate Report</button>
+                    </div>
+
+                    <div class="table-card">
+                        <div id="reportTitle" style="font-size: 18px; font-weight: bold; color: #ffffff; margin-bottom: 12px;">Report Summary Output</div>
+                        <textarea id="reportContent" readonly style="width: 100%; height: 440px; background-color: #0b1329; color: #38bdf8; font-family: 'Consolas', monospace; font-size: 13px; padding: 14px; border: 1px solid #334155; border-radius: 6px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
