@@ -10,6 +10,7 @@ public class Room {
     private String roomType;
     private int floor;
     private Timestamp createdAt;
+    private String occupants;
 
     public Room() {}
 
@@ -50,6 +51,9 @@ public class Room {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public String getOccupants() { return occupants; }
+    public void setOccupants(String occupants) { this.occupants = occupants; }
 
     public boolean isAvailable() {
         return occupiedCount < capacity;

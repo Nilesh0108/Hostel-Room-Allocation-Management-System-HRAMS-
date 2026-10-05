@@ -95,7 +95,9 @@ public class RoomDAO {
 
     public List<Room> getAllRooms() throws SQLException {
         List<Room> rooms = new ArrayList<>();
-        String sql = "SELECT * FROM ROOM ORDER BY floor ASC, room_number ASC";
+        String sql = "SELECT r.*, " +
+                     "(SELECT GROUP_CONCAT(s.name SEPARATOR ', ') FROM ALLOCATION a JOIN STUDENT s ON a.student_id = s.student_id WHERE a.room_id = r.room_id AND a.status = 'ACTIVE') as occupants " +
+                     "FROM ROOM r ORDER BY r.floor ASC, r.room_number ASC";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -158,6 +160,9 @@ public class RoomDAO {
             rs.getInt("floor")
         );
         r.setCreatedAt(rs.getTimestamp("created_at"));
+        try {
+            r.setOccupants(rs.getString("occupants"));
+        } catch (SQLException ignored) {}
         return r;
     }
 }

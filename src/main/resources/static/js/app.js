@@ -124,6 +124,14 @@ function loadStudents() {
     });
 }
 
+function refreshAllData() {
+    loadDashboardStats();
+    loadStudents();
+    loadRooms();
+    loadAllocations();
+    loadWaitingList();
+}
+
 function handleSaveStudent(event) {
     event.preventDefault();
     const student = {
@@ -145,9 +153,12 @@ function handleSaveStudent(event) {
     .then(data => {
         alert(data.message);
         if (data.success) {
-            loadStudents();
             document.getElementById("stuId").value = "";
             document.getElementById("stuName").value = "";
+            document.getElementById("stuEmail").value = "";
+            document.getElementById("stuPhone").value = "";
+            document.getElementById("stuCourse").value = "";
+            refreshAllData();
         }
     });
 }
@@ -158,7 +169,7 @@ function deleteStudent(id) {
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            loadStudents();
+            refreshAllData();
         });
     }
 }
@@ -180,6 +191,7 @@ function loadRooms() {
                 badgeClass = "badge-amber";
                 statusText = "Partially Occupied";
             }
+            const occupantsHtml = r.occupants ? `<span style="color: #38bdf8; font-weight: 500;">${r.occupants}</span>` : `<span style="color: #94a3b8; font-style: italic;">(Empty)</span>`;
             tbody.innerHTML += `
                 <tr>
                     <td>${r.roomId}</td>
@@ -189,6 +201,7 @@ function loadRooms() {
                     <td>${r.capacity}</td>
                     <td>${r.occupiedCount}</td>
                     <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                    <td>${occupantsHtml}</td>
                     <td>
                         <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteRoom(${r.roomId})">Delete</button>
                     </td>
@@ -216,8 +229,8 @@ function handleSaveRoom(event) {
     .then(data => {
         alert(data.message);
         if (data.success) {
-            loadRooms();
             document.getElementById("rmNumber").value = "";
+            refreshAllData();
         }
     });
 }
@@ -228,7 +241,7 @@ function deleteRoom(id) {
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            loadRooms();
+            refreshAllData();
         });
     }
 }
@@ -278,8 +291,8 @@ function handleTriggerAllocation() {
     .then(res => res.json())
     .then(data => {
         alert(data.message);
-        loadAllocations();
         document.getElementById("allocStudentId").value = "";
+        refreshAllData();
     });
 }
 
@@ -289,7 +302,7 @@ function vacateAllocation(id) {
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            loadAllocations();
+            refreshAllData();
         });
     }
 }
@@ -323,7 +336,7 @@ function handleProcessNextWaiting() {
     .then(res => res.json())
     .then(data => {
         alert(data.message);
-        loadWaitingList();
+        refreshAllData();
     });
 }
 

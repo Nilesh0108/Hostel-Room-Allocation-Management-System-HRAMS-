@@ -41,6 +41,8 @@ public class StudentApiController {
         }
     }
 
+    private final com.hrams.service.AllocationService allocationService = new com.hrams.service.AllocationService();
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> addStudent(@RequestBody Student student) {
         Map<String, Object> res = new HashMap<>();
@@ -56,8 +58,30 @@ public class StudentApiController {
                 return ResponseEntity.badRequest().body(res);
             }
             boolean added = studentDAO.addStudent(student);
-            res.put("success", added);
-            res.put("message", added ? "Student record added successfully." : "Could not add student.");
+            if (!added) {
+                res.put("success", false);
+                res.put("message", "Could not add student record.");
+                return ResponseEntity.ok(res);
+            }
+
+            // Perform automatic First-Fit room allocation or FIFO waiting list queueing
+            com.hrams.service.AllocationResult allocResult = allocationService.allocateStudent(student.getStudentId().trim());
+
+            res.put("success", true);
+            if (allocResult.isSuccess()) {
+                if (allocResult.isQueuedToWaitingList()) {
+                    res.put("allocated", false);
+                    res.put("queued", true);
+                    res.put("message", "Student added successfully! " + allocResult.getMessage());
+                } else {
+                    res.put("allocated", true);
+                    res.put("roomNumber", allocResult.getAllocation() != null ? allocResult.getAllocation().getRoomNumber() : "");
+                    res.put("message", "Student added successfully! " + allocResult.getMessage());
+                }
+            } else {
+                res.put("allocated", false);
+                res.put("message", "Student added successfully. Allocation status: " + allocResult.getMessage());
+            }
             return ResponseEntity.ok(res);
         } catch (Exception e) {
             res.put("success", false);
